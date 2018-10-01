@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Author" content="Ogus">
+	<meta name="Description" content="A simple color quantization algorithm using k-means clustering">
+	<link rel="stylesheet" href="https://unpkg.com/picnic">
+
+	<script type="text/javascript" src="demo.js" defer></script>
+
+	<title>Color Quantization - Demo</title>
+</head>
+
+<body>
+	<nav>
+    <h2 class="brand">Color Quantization</h2>
+		<div class="menu">
+			<label for="modal_info" class="pseudo button icon-help">Info</label>
+    </div>
+  </nav>
+
+	<div class="flex one center" style="padding:60px 10px 10px">
+		<div class="four-fifth fifth-800"><div class="flex one center">
+			<div class="half full-800"><div class="flex two center">
+				<h3 class="full">Preview</h3>
+				<div class="">
+					<img src="" alt="Preview" id="preview" style="max-width: 100%; max-height: 400px">
+				</div>
+			</div></div>
+
+			<div class="half full-800"><div class="flex two grow">
+				<h4 class="">Input (Drop or Click)</h4>
+				<div class="full two-fifth-800">
+					<label class="dropimage"><input title="Drop an image or click me" type="file" id="file_input"></label>
+				</div>
+			</div></div>
+
+			<div class="full">
+				<h3>Options</h3>
+				<form class="flex two grow">
+					<label class="half"> Color Number</label>
+					<input type="number" name="configuration" id="k_config" class="half" value=4 min=1 max=20 step=1>
+					<label class="full"><input type="checkbox" id="gray_config"><span class="checkable">Grayscale</span></label>
+				</form>
+			</div>
+
+			<button class="half" id="reset_button">Reset Image</button>
+		</div></div>
+
+		<div class="full four-fifth-800">
+      <div class="flex two center">
+        <div class="full four-fifth-800 three-fifth-1200">
+            <canvas width="800" height="600" id="canvas" style="width: 100%; height: auto"></canvas>
+        </div>
+        <div class="full flex three five-800 center">
+          <button id="button">Quantize</button>
+        </div>
+      </div>
+    </div>
+	</div>
+
+	<div class="modal">
+		<input id="modal_info" type="checkbox" /><label for="modal_info" class="overlay"></label>
+		<div>
+			<header>
+				<h3>Informations</h3>
+				<label for="modal_info" class="close">&times;</label>
+			</header>
+	    <section class="content">
+	      <p>Nothing to display currently</p>
+	    </section>
+			<footer>
+				<!-- <label for="modal_info" class="button dangerous">Close</label> -->
+			</footer>
+		</div>
+	</div>
+
+</body>
+</html>
