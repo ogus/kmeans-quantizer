@@ -1,1 +1,1 @@
-# Color Quantizer
+# K-Means Color Quantizer

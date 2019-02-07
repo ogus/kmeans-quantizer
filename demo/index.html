@@ -3,10 +3,11 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="Author" content="Ogus">
+	<meta name="Author" content="ogus">
 	<meta name="Description" content="A simple color quantization algorithm using k-means clustering">
 	<link rel="stylesheet" href="https://unpkg.com/picnic">
 
+	<script type="text/javascript" src="../src/kmeans-quantizer.js"></script>
 	<script type="text/javascript" src="demo.js" defer></script>
 
 	<title>Color Quantization - Demo</title>
@@ -41,7 +42,6 @@
 				<form class="flex two grow">
 					<label class="half"> Color Number</label>
 					<input type="number" name="configuration" id="k_config" class="half" value=4 min=1 max=20 step=1>
-					<label class="full"><input type="checkbox" id="gray_config"><span class="checkable">Grayscale</span></label>
 				</form>
 			</div>
 
@@ -51,7 +51,7 @@
 		<div class="full four-fifth-800">
       <div class="flex two center">
         <div class="full four-fifth-800 three-fifth-1200">
-            <canvas width="800" height="600" id="canvas" style="width: 100%; height: auto"></canvas>
+            <canvas width="800" height="600" id="canvas" style="width: 100%; height: auto;"></canvas>
         </div>
         <div class="full flex three five-800 center">
           <button id="button">Quantize</button>

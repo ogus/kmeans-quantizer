@@ -1,15 +1,15 @@
 {
-  "name": "color-quantizer",
+  "name": "kmeans-quantizer",
   "version": "1.0.0",
   "description": "A color quantization tool for images based on k-means clustering",
   "scripts": {
-    "build": "terser src/color-quantizer.js -c -m reserved=['ColorQuantizer'] > src/color-quantizer.min.js"
+    "build": "terser src/kmeans-quantizer.js -c -m reserved=['KMeansQuantizer'] > src/kmeans-quantizer.min.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/ogus/color-quantizer.git"
   },
-  "author": "Ogus",
+  "author": "ogus",
   "license": "ISC",
   "devDependencies": {
     "terser": "^3.9.2"

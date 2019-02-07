@@ -1,136 +1,138 @@
 (function (window, document) {
-  "use strict";
+  'use strict';
 
-  var $button, $reset_button, $input;
-  var canvas, ctx, img_data, is_busy;
+  var DOM = {
+    buttonStart: null,
+    buttonReset: null,
+    input: null,
+    canvas: null
+  };
 
-  var config = {
-      k: 10,
-      grayscale: false
-      // ,colors: [
-      //   {r: 15, g: 56, b: 15},
-      //   {r: 48, g: 98, b: 48},
-      //   {r: 139, g: 172, b: 15},
-      //   {r: 155, g: 188, b: 15},
-      // ]
-    };
-
-  var quantizerWorker = new Worker('../src/color-quantizer.min.js');
-
-  const PLACEHOLDER = "assets/placeholder.jpg";
+  var ctx = null,
+      srcImgData = null,
+      isBusy = false,
+      userConfig = {},
+      quantizerWorker = null;
 
   window.onload = function () {
-    $button = document.getElementById("button");
-    $reset_button = document.getElementById("reset_button");
-    $input = document.getElementById("file_input");
+    DOM.buttonStart = document.getElementById('button');
+    DOM.buttonReset = document.getElementById('reset_button');
+    DOM.input = document.getElementById('file_input');
+    DOM.canvas = document.getElementById('canvas');
 
-    canvas = document.getElementById("canvas");
-    ctx = canvas.getContext("2d");
-
-    quantizerWorker.onmessage = function(e) {
-      if (e.data !== null) {
-        applyImageData(e.data);
-      }
-    }
-
+    ctx = DOM.canvas.getContext('2d');
     setBusy(false);
-    img_data = undefined;
-
+    initWebWorker();
     initListener();
-    extractDataFromSrc(PLACEHOLDER);
+    extractDataFromSrc('assets/placeholder.jpg');
   }
 
   function initListener() {
+		let prevDefault = function (e) { e.preventDefault(); }
+
     document.addEventListener('drop', function (e) {
       e.preventDefault();
       readFile(e.dataTransfer.files[0]);
-    }, false);
-    $input.addEventListener('change', function () {
-      readFile($input.files[0]);
-    }, false);
+    });
+		document.addEventListener('dragenter', prevDefault);
+		document.addEventListener('dragover', prevDefault);
+		document.addEventListener('dragleave', prevDefault);
 
-		let prevDefault = e => e.preventDefault();
-		document.addEventListener('dragenter', prevDefault, false);
-		document.addEventListener('dragover', prevDefault, false);
-		document.addEventListener('dragleave', prevDefault, false);
+    DOM.input.addEventListener('change', function () {
+      readFile(DOM.input.files[0]);
+    });
 
-    $button.addEventListener("click", startWorkerQuantization, false);
-    $reset_button.addEventListener("click", resetImage, false);
+    DOM.buttonStart.addEventListener('click', startQuantization);
+    DOM.buttonReset.addEventListener('click', resetImgData);
+  }
+
+  function initWebWorker() {
+    if (window.Worker) {
+      quantizerWorker = new Worker('../src/kmeans-quantizer.js');
+      quantizerWorker.onmessage = function (e) {
+        handleQuantization(e.data);
+      }
+    }
   }
 
   function readFile(file) {
-    if (!is_busy && file && file.type.includes('image')) {
+    if (!isBusy && file && file.type.includes('image')) {
       setBusy(true);
       let reader = new FileReader();
   		reader.addEventListener('load', function () {
         extractDataFromSrc(reader.result);
-      }, false);
+        setBusy(false);
+      });
       reader.readAsDataURL(file);
     }
   }
 
   function extractDataFromSrc(src) {
-    setBusy(true);
-
     let img = new Image();
     img.setAttribute('crossOrigin', 'anonymous');
-    img.onload = () => {
-      setBusy(false);
-      document.getElementById("preview").src = img.src;
-
-      canvas.width = img.width; canvas.height = img.height;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      img_data = ctx.getImageData(0,0, canvas.width, canvas.height);
+    img.onload = function () {
+      document.getElementById('preview').src = img.src;
+      DOM.canvas.width = img.width;
+      DOM.canvas.height = img.height;
+      ctx.drawImage(img, 0, 0, DOM.canvas.width, DOM.canvas.height);
+      srcImgData = ctx.getImageData(0,0, DOM.canvas.width, DOM.canvas.height);
     }
     img.src = src;
   }
 
-  function startWorkerQuantization() {
-    if (!is_busy) {
-      setBusy(true);
-      let valid_config = getConfig();
-      if (valid_config) {
-        quantizerWorker.postMessage({img: img_data, config: config});
+  function startQuantization() {
+    if (isBusy) {
+      return;
+    }
+    setBusy(true);
+    let params = getUserParams();
+    if (params != null) {
+      if (quantizerWorker != null) {
+        quantizerWorker.postMessage({imageData: srcImgData, params: params});
       }
+      else {
+        KMeansQuantizer.compute(srcImgData, params).then(handleQuantization);
+      }
+    }
+    else {
+      setBusy(false);
     }
   }
 
-  function applyImageData(img_data) {
-    let data = new ImageData(img_data, canvas.width, canvas.height);
-    ctx.putImageData(data, 0,0);
+  function handleQuantization(result) {
+    console.log(result.palette);
+    let imgData = new ImageData(result.imageData, canvas.width, canvas.height);
+    ctx.putImageData(imgData, 0,0);
     setBusy(false);
   }
 
-  function getConfig() {
-    let $k = document.getElementById("k_config");
-    if($k.checkValidity()) {
-      config.k = parseInt($k.value);
+  function getUserParams() {
+    let kInput = document.getElementById('k_config');
+    if(kInput.checkValidity()) {
+      return {
+        k: parseInt(kInput.value),
+        async: true
+      };
     }
-    else{ return false; }
-
-    let $gray = document.getElementById("gray_config");
-    if($gray.checkValidity()) {
-      config.grayscale = $gray.checked;
+    else{
+      return null;
     }
-    else{ return false; }
-
-    return true;
   }
 
-  function resetImage() {
-    if(img_data != undefined) {
-      ctx.putImageData(img_data, 0, 0);
+  function resetImgData(imgData) {
+    if (!!srcImgData) {
+      ctx.putImageData(srcImgData, 0,0);
     }
   }
 
   function setBusy(b) {
     if (b) {
-      is_busy = true;
-      $button.textContent = "Computing..."
+      isBusy = true;
+      DOM.buttonStart.textContent = 'Computing...'
     }
     else {
-      is_busy = false;
-      $button.textContent = "Quantize";
+      isBusy = false;
+      DOM.buttonStart.textContent = 'Quantize';
     }
   }
 
