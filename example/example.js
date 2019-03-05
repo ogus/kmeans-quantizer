@@ -11,7 +11,6 @@
   var ctx = null,
       srcImgData = null,
       isBusy = false,
-      userConfig = {},
       quantizerWorker = null;
 
   window.onload = function () {
@@ -28,19 +27,18 @@
   }
 
   function initListener() {
-		let prevDefault = function (e) { e.preventDefault(); }
+    DOM.input.addEventListener('change', function (e) {
+      readFile(DOM.input.files[0]);
+    });
 
     document.addEventListener('drop', function (e) {
       e.preventDefault();
       readFile(e.dataTransfer.files[0]);
     });
+		let prevDefault = function (e) { e.preventDefault(); }
 		document.addEventListener('dragenter', prevDefault);
 		document.addEventListener('dragover', prevDefault);
 		document.addEventListener('dragleave', prevDefault);
-
-    DOM.input.addEventListener('change', function () {
-      readFile(DOM.input.files[0]);
-    });
 
     DOM.buttonStart.addEventListener('click', startQuantization);
     DOM.buttonReset.addEventListener('click', resetImgData);
@@ -71,11 +69,11 @@
     let img = new Image();
     img.setAttribute('crossOrigin', 'anonymous');
     img.onload = function () {
-      document.getElementById('preview').src = img.src;
+      document.querySelector('.dropimage').style['background-image'] = 'url('+src+')';
       DOM.canvas.width = img.width;
       DOM.canvas.height = img.height;
       ctx.drawImage(img, 0, 0, DOM.canvas.width, DOM.canvas.height);
-      srcImgData = ctx.getImageData(0,0, DOM.canvas.width, DOM.canvas.height);
+      srcImgData = ctx.getImageData(0,0, DOM.canvas.width, DOM.canvas.height).data;
     }
     img.src = src;
   }
@@ -85,13 +83,13 @@
       return;
     }
     setBusy(true);
-    let params = getUserParams();
-    if (params != null) {
+    let colorCount = getColorCount();
+    if (colorCount != null) {
       if (quantizerWorker != null) {
-        quantizerWorker.postMessage({imageData: srcImgData, params: params});
+        quantizerWorker.postMessage({imageData: srcImgData, colorCount: colorCount});
       }
       else {
-        KMeansQuantizer.compute(srcImgData, params).then(handleQuantization);
+        KMeansQuantizer.compute(srcImgData, colorCount, true).then(handleQuantization);
       }
     }
     else {
@@ -100,19 +98,17 @@
   }
 
   function handleQuantization(result) {
-    console.log(result.palette);
-    let imgData = new ImageData(result.imageData, canvas.width, canvas.height);
+    console.log(result);
+    let imgData = ctx.createImageData(canvas.width, canvas.height);
+    imgData.data.set(result.imageData);
     ctx.putImageData(imgData, 0,0);
     setBusy(false);
   }
 
-  function getUserParams() {
-    let kInput = document.getElementById('k_config');
-    if(kInput.checkValidity()) {
-      return {
-        k: parseInt(kInput.value),
-        async: true
-      };
+  function getColorCount() {
+    let colorCount = document.getElementById('color_count');
+    if(colorCount.checkValidity()) {
+      return colorCount.value;
     }
     else{
       return null;

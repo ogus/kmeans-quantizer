@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Author" content="Ogus">
+	<meta name="Description" content="A simple color quantization algorithm using k-means clustering">
+	<link rel="stylesheet" href="https://unpkg.com/picnic">
+
+	<script type="text/javascript" src="../src/kmeans-quantizer.js"></script>
+	<script type="text/javascript" src="example.js" defer></script>
+
+	<title>K-Means Quantizer - Demonstration</title>
+</head>
+
+<body>
+	<nav>
+    <h2 class="brand">K-Means Quantizer</h2>
+		<div class="menu">
+			<label for="modal_info" class="pseudo button">Info</label>
+    </div>
+  </nav>
+
+	<div class="flex twelve center" style="padding:60px 10px 10px">
+
+		<div class="two-fifth-800 four-fifth">
+			<div class="flex one center">
+				<h4 class="">Drag & Drop | Click</h4>
+				<div class="two-fifth">
+					<label class="dropimage">
+						<input title="Drop an image or click me" type="file" id="file_input">
+					</label>
+				</div>
+			</div>
+
+			<div class="flex one grow">
+				<h3>Options</h3>
+				<form>
+					<label class="half"> Color Number</label>
+					<input type="number" name="configuration" id="color_count" class="half" value=4 min=1 max=20 step=1>
+				</form>
+			</div>
+
+			<div class="flex twelve center">
+				<button class="half" id="reset_button">Reset Image</button>
+			</div>
+		</div>
+
+		<div class="two-fifth-1200 three-fifth-800 four-fifth">
+			<canvas width="800" height="600" id="canvas" style="width: 100%; height: auto;"></canvas>
+			<div class="flex twelve center">
+				<button class="two-fifth" id="button">Quantize</button>
+			</div>
+    </div>
+	</div>
+
+	<div class="modal">
+		<input id="modal_info" type="checkbox" /><label for="modal_info" class="overlay"></label>
+		<div>
+			<header>
+				<h3>Informations</h3>
+				<label for="modal_info" class="close">&times;</label>
+			</header>
+	    <section class="content">
+	      <p>Nothing to display currently</p>
+	    </section>
+			<footer>
+			</footer>
+		</div>
+	</div>
+
+</body>
+</html>

@@ -12,7 +12,6 @@
     this.blue = blue;
   }
 
-
   // Compute the distance between 2 colors, return distance in range [0,1]
   // Formula from from https://www.compuphase.com/cmetric.htm
   function distance(color1, color2) {
@@ -39,7 +38,7 @@
 
   function nearestColor(inputColor, colorList) {
     let idx = nearestColorIdx(inputColor, colorList);
-    return  colorList[idx];
+    return colorList[idx];
   }
 
    function getColor(imgData, i) {
@@ -55,7 +54,7 @@
 
   // Compute a random color from an ImageData
   function pickRandomColor(imgData) {
-    let idx = Math.floor(Math.random()*(imgData.length>>2)) << 2;
+    let idx = Math.floor(Math.random() * (imgData.length>>2)) << 2;
     return getColor(imgData, idx);
   }
 
@@ -115,11 +114,11 @@
     let clusterList = newClusterList(k);
     let centroidList = new Array(k);
     let assignement = new Array(imgData.length >> 2).fill(-1);
-    let color = new Color(0,0,0);
+    let color = new Color(0, 0, 0);
     // end conditions
     let iter = 0, maxIter = 20;
     let previousVariance = new Array(k).fill(1);
-    let variance = 0, delta = 0, deltaMax = 0, threshold = 0.0001;
+    let variance = 0, delta = 0, deltaMax = 0, threshold = 0.00005;
     while (true) {
       // compute clusters
       centroidList = getClusterCentroid(imgData, clusterList);
@@ -156,10 +155,9 @@
   }
 
   // Quantize an ImageData by computing the color palette, then re-coloring the image
-  function quantize(imgData, params) {
-    let k = parseInt(params.k);
-    let kmeans = computeKMeans(imgData.data, k);
-    let newImgData = applyKMeans(imgData.data, kmeans);
+  function quantize(imgData, k) {
+    let kmeans = computeKMeans(imgData, k);
+    let newImgData = applyKMeans(imgData, kmeans);
     return {
       imageData: newImgData,
       palette: kmeans.centroidList
@@ -167,36 +165,35 @@
   }
 
   // Public interface
-  function compute(imgData, params) {
-    if (!!params.async) {
+  function compute(imageData, colorCount, async) {
+    let k = parseInt(colorCount);
+    if (!!async) {
       return new Promise(function(resolve, reject) {
-        let result = quantize(imgData, params);
+        let result = quantize(imageData, k);
         resolve(result);
       });
     }
     else {
-      return quantize(imgData, params);
+      return quantize(imageData, k);
     }
   }
 
   // Worker message
   if (typeof self !== "undefined") {
     self.onmessage = function(e) {
-      let imgData = e.data.imageData, params = e.data.params;
-      if (!imgData || !params) {
+      let imageData = e.data.imageData, colorCount = e.data.colorCount;
+      if (!imageData || !colorCount) {
         postMessage(null);
       }
       else {
-        let result = quantize(imgData, params);
+        let result = compute(imageData, colorCount);
         postMessage(result);
       }
     }
   }
 
-  // Object definition
-  var KMeansQuantizer = {
+
+  return {
     compute: compute
   };
-  return KMeansQuantizer;
-
 }));
